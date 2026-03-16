@@ -16,7 +16,12 @@ import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 
 
-dotenv.config();
+//dotenv.config();
+
+// Use this — only load .env in local development
+if (process.env.NODE_ENV !== "production") {
+    dotenv.config();
+}
 
 const app = express();
 const server = http.createServer(app);
