@@ -119,8 +119,10 @@ export const getMyPendigChatContacts = async (req, res) => {
                 };
             })
         );
+        const filteredContacts = contacts.filter(contact => contact !== null);
 
-        res.json(contacts);
+        res.json(filteredContacts);
+
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
