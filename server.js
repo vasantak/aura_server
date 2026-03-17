@@ -36,7 +36,7 @@ app.use(cookieParser());
 
 // app.use(cors({ origin: "*" }));
 
-app.options("*", cors({
+app.options("(.*)", cors({
     origin: process.env.CLIENT_URL,
     credentials: true,
 }));
