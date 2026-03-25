@@ -6,7 +6,9 @@ import {
     refreshToken,
     logout,
     requestPasswordReset,
-    resetPassword
+    resetPassword,
+    genarateOTP,
+    verifyOTP
 } from "../controllers/authController.js";
 
 const router = express.Router();
@@ -135,6 +137,8 @@ const router = express.Router();
  */
 
 router.post("/register", register);
+router.post("/register/genarateOTP", genarateOTP);
+router.post("/register/verifyOTP", verifyOTP);
 router.post("/login", login);
 router.get("/loginUsers", getloginUsers);
 router.post("/refresh", refreshToken); // cookie-based

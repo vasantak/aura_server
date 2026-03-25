@@ -107,6 +107,7 @@ export const getMyPendigChatContacts = async (req, res) => {
         const contacts = await Promise.all(
             chatRequests.map(async (chat) => {
                 const isSender = chat.senderId.toString() === currentUserId;
+                if (isSender) return null;
                 const contactId = isSender ? chat.receiverId : chat.senderId;
                 const contactUser = await User.findById(contactId).select("name email");
                 if (!contactUser || contactUser._id.toString() === currentUserId) return null;
