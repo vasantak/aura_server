@@ -1,5 +1,7 @@
-import express from "express";
 import dotenv from "dotenv";
+//dotenv.config();
+
+import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import http from "http";
@@ -18,7 +20,7 @@ import swaggerJsdoc from "swagger-jsdoc";
 
 //dotenv.config();
 
-// Use this — only load .env in local development
+// // Use this — only load .env in local development
 if (process.env.NODE_ENV !== "production") {
     dotenv.config();
 }

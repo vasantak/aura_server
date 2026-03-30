@@ -6,6 +6,10 @@ const userSchema = new mongoose.Schema({
     phonenumber: { type: Number, required: true, unique: true, },
     password: { type: String, required: true },
     role: { type: String, enum: ["EMPLOYEE", "MANAGER", "ADMIN"], default: "EMPLOYEE" },
+    bio: { type: String },
+    username: { type: String, unique: true },
+    dob: { type: Date },
+    gender: { type: String },
 
     // store a single refresh token (or array if you want multiple devices)
     refreshToken: { type: String },
