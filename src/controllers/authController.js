@@ -104,7 +104,7 @@ const htmlTemplate = (OTP_CODE, USER_NAME) => `
 </div>
 `;
 
-//const resend = new Resend(process.env.RESEND_API_KEY);
+
 
 export const genarateOTP = async (req, res) => {
     try {
@@ -118,6 +118,11 @@ export const genarateOTP = async (req, res) => {
         }
         const otp = Math.floor(1000 + Math.random() * 9000).toString();
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // ✅ 10 minutes
+
+        if (!process.env.RESEND_API_KEY) {
+            return res.status(500).json({ message: "Server configuration error: Missing RESEND_API_KEY" });
+        }
+
         const resend = new Resend(process.env.RESEND_API_KEY);
         // const resend = new Resend('re_RTbWYCAV_5ZVRmoUvZ7vMf1dP4Cjee2n9');
 
@@ -144,57 +149,6 @@ export const genarateOTP = async (req, res) => {
     }
 };
 
-export const genarateOTPZ = async (req, res) => {
-    try {
-        const { email } = req.body;
-
-        if (!email) {
-            return res.status(400).json({ message: "Email required" });
-        }
-
-        const existing = await User.findOne({ email });
-        // if (existing) {
-        //     return res.status(400).json({ message: "Email already in use" });
-        // }
-
-        const otp = Math.floor(1000 + Math.random() * 9000).toString();
-        const expiresAt = Date.now() + 10 * 1000;//new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
-        //Date.now() + 10 * 1000;// for testing, set to 10 seconds
-
-        // 🔥 Delete old OTP (important)
-        await RegistrationOTP.deleteMany({ email });
-
-        await RegistrationOTP.create({ email, otp, expiresAt });
-
-
-        const resend = new Resend('re_RTbWYCAV_5ZVRmoUvZ7vMf1dP4Cjee2n9');
-
-
-
-        const { error } = await resend.emails.send({
-            from: 'noreply@aura-chat.com',   // ✅ your domain
-            to: email,                        // ✅ any email
-            subject: `AURA verification code - ${otp}`,
-            html: htmlTemplate(otp, email.split("@")[0])
-        });
-
-        if (error) {
-            console.error('Resend error:', error);
-            return res.status(500).json({ message: 'Failed to send OTP email' });
-        }
-
-        // console.log(`OTP sent to ${email}: ${otp}`);
-
-        // ⚠️ Remove otp from response in production
-        res.json({ message: "OTP sent successfully", expiresAt });
-
-        res.json({ message: "OTP sent successfully", otp, expiresAt }); // don't send OTP in real app
-
-    } catch (err) {
-        console.error("Email error:", err);
-        res.status(500).json({ message: err.message });
-    }
-};
 
 // verify Genarate OTP for registration
 export const verifyOTP = async (req, res) => {

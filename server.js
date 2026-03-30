@@ -1,5 +1,9 @@
 import dotenv from "dotenv";
-//dotenv.config();
+
+// Only load .env in development - Render uses its own environment variables
+if (process.env.NODE_ENV !== "production") {
+    dotenv.config();
+}
 
 import express from "express";
 import cors from "cors";
@@ -16,14 +20,6 @@ import fileRoutes from "./src/routes/fileRoutes.js";
 
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
-
-
-//dotenv.config();
-
-// // Use this — only load .env in local development
-if (process.env.NODE_ENV !== "production") {
-    dotenv.config();
-}
 
 const app = express();
 const server = http.createServer(app);
