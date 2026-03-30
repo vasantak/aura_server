@@ -34,12 +34,7 @@ app.use(cors({
 
 // app.use(cors({ origin: "*" }));
 
-
-
-
-
 app.use(express.static("public"));
-
 
 app.get("/", (req, res) => {
     res.send("Aura Server running 🚀");

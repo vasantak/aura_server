@@ -186,62 +186,6 @@ export const verifyOTP = async (req, res) => {
 
 
 
-// export const genarateOTP = async (req, res) => {
-//     try {
-//         const { email } = req.body;
-
-//         if (!email) {
-//             return res.status(400).json({ message: "Email required" });
-//         }
-
-//         const existing = await User.findOne({ email });
-//         if (existing) {
-//             return res.status(400).json({ message: "Email already in use" });
-//         }
-
-//         const otp = Math.floor(1000 + Math.random() * 9000).toString();
-//         const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
-//         //Date.now() + 10 * 1000;// for testing, set to 10 seconds
-
-//         // 🔥 Delete old OTP (important)
-//         await RegistrationOTP.deleteMany({ email });
-
-//         await RegistrationOTP.create({ email, otp, expiresAt });
-
-//         // 📧 Nodemailer setup
-//         const transporter = nodemailer.createTransport({
-//             host: "smtp.gmail.com",
-//             port: 465,
-//             secure: true,
-//             auth: {
-//                 user: process.env.EMAIL,
-//                 pass: process.env.EMAIL_PASSWORD
-//             }
-//         });
-
-//         // ✉️ Send email
-//         await transporter.sendMail({
-//             from: `"${process.env.APP_NAME}" <${process.env.EMAIL}>`,
-//             to: email,
-//             subject: "Your OTP Code",
-//             html: htmlTemplate(otp, email.split("@")[0]) // pass OTP and username to template
-//         });
-
-//         console.log(`OTP sent to ${email}: ${otp}`);
-
-//         res.json({ message: "OTP sent successfully", otp, expiresAt }); // don't send OTP in real app
-
-//     } catch (err) {
-//         console.error("Email error:", err);
-//         res.status(500).json({ message: err.message });
-//     }
-// };
-
-// verify Genarate OTP for registration
-
-
-
-// Login
 export const login = async (req, res) => {
     console.log('login')
     try {
