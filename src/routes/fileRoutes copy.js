@@ -1,7 +1,7 @@
 
 import express from 'express';
 //import { upload } from "../middleware/fileUploadMiddleware.js";
-import { authenticate, authorize } from "../middleware/authMiddleware.js";
+//import { authenticate, authorize } from "../middleware/authMiddleware.js";
 
 //import * as fileCntrl from '../controllers/file.controller.js';
 
@@ -10,13 +10,16 @@ import { GridFSBucket } from "mongodb";
 import { Readable } from "stream";
 import upload from "../middleware/upload.js";
 import Post from "../models/MyPost.js";
+import { authenticate } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
+// ────────────────────────────────────────────────────────────
+// 🔴 POST ROUTES (MUST BE BEFORE GET :filename to avoid conflicts)
+// ────────────────────────────────────────────────────────────
 
-// ─── UPLOAD FILE ─────────────────────────────────────────
-
-router.post("/upload", authenticate, upload.array("images", 10), async (req, res) => {
+// POST /api/posts/upload
+router.post("/upload", upload.array("images", 10), async (req, res) => {
     try {
         if (!req.files || req.files.length === 0)
             return res.status(400).json({ message: "No files uploaded" });
@@ -25,12 +28,12 @@ router.post("/upload", authenticate, upload.array("images", 10), async (req, res
         const bucket = new GridFSBucket(db, { bucketName: "uploads" });
         const filenames = [];
 
-        // Upload each file to GridFS
         for (const file of req.files) {
             const filename = `${Date.now()}-${file.originalname}`;
             const readable = Readable.from(file.buffer);
+
             const uploadStream = bucket.openUploadStream(filename, {
-                metadata: { mimetype: file.mimetype, userId: req.user.id },
+                metadata: { mimetype: file.mimetype },
             });
 
             await new Promise((resolve, reject) => {
@@ -42,94 +45,31 @@ router.post("/upload", authenticate, upload.array("images", 10), async (req, res
             filenames.push(filename);
         }
 
-        const type = req.body.type || "PHOTO"; // default to PHOTO if not provided
-        const options = {}
-        switch (type) {
-            case "MUSIC":
-                options.musicDetails = {
-                    track: req.body.track,
-                    artist: req.body.artist,
-                    albumArt: filenames[0] // use first image as album art
-                };
-                break;
-            case "MEMORY":
-                options.memoryDetails = {
-                    location: req.body.location,
-                    dateOccurred: req.body.dateOccurred
-                };
-                break;
-        }
-
-        // Save post with image filenames
-        const post = await Post.create({
-            userId: req.user.id,
-            caption: req.body.caption,
-            images: filenames, // ✅ ["123-photo1.png", "456-photo2.png"]
-            ...options,
-            type
+        res.status(201).json({
+            message: "Uploaded successfully ✅",
+            filenames,                              // ["123-a.png", "456-b.png"]
+            single: filenames[0],                   // "123-a.png" if single
         });
-
-
-
-
-        res.status(201).json({ message: "Post created ✅", post });
 
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
-// router.post("/upload", upload.single("file"), async (req, res) => {
-//     try {
-//         if (!req.file) return res.status(400).json({ message: "No file uploaded" });
-
-//         const db = mongoose.connection.db;
-//         const bucket = new GridFSBucket(db, { bucketName: "uploads" });
-
-//         const filename = `${Date.now()}-${req.file.originalname}`;
-
-//         // Convert buffer to readable stream
-//         const readableStream = Readable.from(req.file.buffer);
-
-//         const uploadStream = bucket.openUploadStream(filename, {
-//             metadata: { mimetype: req.file.mimetype },
-//         });
-
-//         readableStream.pipe(uploadStream);
-
-//         uploadStream.on("finish", () => {
-//             res.status(201).json({
-//                 message: "File uploaded successfully ✅",
-//                 file: {
-//                     id: uploadStream.id,
-//                     filename: filename,
-//                     size: req.file.size,
-//                     mimetype: req.file.mimetype,
-//                 },
-//             });
-//         });
-
-//         uploadStream.on("error", (err) => {
-//             res.status(500).json({ message: "Upload failed", error: err.message });
-//         });
-
-//     } catch (err) {
-//         res.status(500).json({ message: err.message });
-//     }
-// });
-
-
+// ────────────────────────────────────────────────────────────
+// 🟢 GET SPECIFIC ROUTES (BEFORE generic /:filename)
+// ────────────────────────────────────────────────────────────
 
 // GET /api/posts/my-posts — only logged in user's posts
 router.get("/my-posts", authenticate, async (req, res) => {
     try {
-        const posts = await Post.find({ userId: req.user.id }).populate("userId", "name avatar email") // ✅ filter by logged in user
+        const posts = await Post.find({ userId: req.user.id }) // ✅ filter by logged in user
             .sort({ createdAt: -1 });
 
         const postsWithUrls = posts.map((post) => ({
             ...post.toObject(),
             images: post.images.map(
-                (filename) => `${process.env.SERVER_URL}/api/Files/${filename}`
+                (filename) => `${process.env.CLIENT_URL}/api/Files/${filename}`
             ),
         }));
 
@@ -149,7 +89,7 @@ router.get("/home", async (req, res) => {
         const postsWithUrls = posts.map((post) => ({
             ...post.toObject(),
             images: post.images.map(
-                (filename) => `${process.env.SERVER_URL}/api/Files/${filename}`
+                (filename) => `${process.env.CLIENT_URL}/api/Files/${filename}`
             ),
         }));
 
@@ -236,9 +176,9 @@ router.delete("/:id", async (req, res) => {
     }
 });
 
-
-
-
+// ────────────────────────────────────────────────────────────
+// GET GENERIC ROUTE (MUST BE LAST - matches everything)
+// ────────────────────────────────────────────────────────────
 
 // GET /api/posts
 router.get("/", async (req, res) => {
